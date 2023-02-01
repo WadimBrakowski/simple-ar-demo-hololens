@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ObjFromFile : MonoBehaviour
 {
-    string objPath = string.Empty;
+    string objPath = "F:\\CAD\\ar\\test objects\\monkey.obj";
     string error = string.Empty;
     GameObject loadedObject;
 
