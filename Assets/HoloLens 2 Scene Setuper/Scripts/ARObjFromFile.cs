@@ -12,40 +12,40 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Net;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
-public class ARObjFromFile : MonoBehaviour
+namespace HoloLens_2_Scene_Setuper
 {
+    public class ARObjFromFile : MonoBehaviour
+    {
+        [SerializeField] private AssemblyGroup _assemblyGroup;
 
-    //string objPath = "F:\\CAD\\ar\\test objects\\head.obj";
-
-    string objPath;
+        string objPath = "F:\\cad\\ar\\test objects\\another_test.obj";
 
 
-    string error = string.Empty;
-    GameObject loadedObject;
-    MeshCollider meshCollider;
-    Mesh mesh;
-    [SerializeField] private GameObject workSpacePrefab;
-    [SerializeField] private Vector3 workPlacePosition =  new Vector3(0, -0.3f, 1.3f);
-
-    [SerializeField] TextMeshPro pathText;
-    string consoleText = "None";
-    string text;
+        string error = string.Empty;
+        GameObject loadedObject;
+        MeshCollider meshCollider;
+        Mesh mesh;
+        
+        [SerializeField] TextMeshPro pathText;
+        string consoleText = "None";
+        string text;
 #if ENABLE_WINMD_SUPPORT
     Windows.Storage.Streams.IRandomAccessStream randomAccessStream;
 #endif
-    Stream stream;
-    private MemoryStream textStream;
+        Stream stream;
+        private MemoryStream textStream;
 
 
-    private void Start()
-    {
-        pathText.text = consoleText;
-    }
+        private void Start()
+        {
+            pathText.text = consoleText;
+        }
 
 
-    public void OpenBrowser()
-    {
+        public void OpenBrowser()
+        {
 #if ENABLE_WINMD_SUPPORT
         UnityEngine.WSA.Application.InvokeOnUIThread(async () =>
         {
@@ -84,15 +84,8 @@ public class ARObjFromFile : MonoBehaviour
                     {
                         uint numBytesLoaded = await dataReader.LoadAsync((uint)size);
                         text = dataReader.ReadString(numBytesLoaded);
-                        //textStream = new MemoryStream(Encoding.UTF8.GetBytes(text));
                     }
                 }
-
-                consoleText = text;
-                objPath = file.Path;
-
-
-
 
             }
             else
@@ -102,84 +95,65 @@ public class ARObjFromFile : MonoBehaviour
 
             }
         }, true);
-
-        pathText.text = consoleText;
-
-
-
-
-        //workSpacePrefab = Instantiate(workSpacePrefab, workPlacePosition, Quaternion.identity);
-
-        //ConfigGameObject();
+            
+            LoadObjFromStream();
 
 
 #endif
-    }
-
-    public void LoadOBJ()
-    {
-        try
+        }
+#if UNITY_EDITOR
+        public void LoadOBJ()
         {
-            if (!File.Exists(objPath))
+            try
             {
-                pathText.text = "File doesn't exist.";
+                if (!File.Exists(objPath))
+                {
+                    pathText.text = "File doesn't exist.";
+                }
+                else
+                {
+                    if (loadedObject != null)
+                        Destroy(loadedObject);
+                    loadedObject = new OBJLoader().Load(objPath);
+                    pathText.text = loadedObject.name + " is loaded!1";
+                    error = string.Empty;
+                    _assemblyGroup.LoadedObjectFile = loadedObject;
+                }
             }
-            else
+            catch (Exception e)
             {
-                if (loadedObject != null)
-                    Destroy(loadedObject);
-                loadedObject = new OBJLoader().Load("C:\\Data\\User\\holo.ar%40outlook.de\\3D%20Objects\\head.obj");
-                pathText.text = loadedObject.name+ " is loaded!1";
-                error = string.Empty;
-                loadedObject.transform.position= workPlacePosition;
+                if (pathText.IsActive())
+                {
+                    pathText.text = e.ToString();
+                }
+                
             }
         }
-        catch (Exception e)
+#endif
+        public void LoadObjFromStream()
         {
-            pathText.text = e.ToString();
+            try
+            {
+
+                //create stream and load
+                textStream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+                Debug.Log(text);
+                loadedObject = new OBJLoader().Load(textStream);
+                _assemblyGroup.LoadedObjectFile = loadedObject;
+            }
+            catch (Exception e)
+            {
+                if (pathText.IsActive())
+                {
+                    pathText.text = e.ToString();
+                }
+            }
+        }
+
+        public void ReloadScene()
+        {
+            int sceneIndex = SceneManager.GetActiveScene().buildIndex;
+            SceneManager.LoadScene(sceneIndex);
         }
     }
-
-    public void LoadObjFromStream()
-    {
-        try
-        {
-
-            //create stream and load
-            textStream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-            Debug.Log(text);
-            loadedObject = new OBJLoader().Load(textStream);
-        }
-        catch (Exception e)
-        {
-            pathText.text = e.ToString();
-        }
-    }
-
-    void ConfigGameObject()
-    {
-        //loadedObject.transform.localScale = new Vector3(.1f, .1f, .1f);
-        loadedObject.transform.parent = workSpacePrefab.transform;
-        loadedObject.transform.position = workSpacePrefab.transform.position;
-        SetupMeshForLoadedObject();
-
-        AddARComponentsToLoadedObject();
-    }
-
-    private void SetupMeshForLoadedObject()
-    {
-        meshCollider = loadedObject.AddComponent<MeshCollider>();
-        meshCollider.convex = true;
-
-        mesh = loadedObject.GetComponentInChildren<MeshFilter>().sharedMesh;
-        meshCollider.sharedMesh = mesh;
-    }
-
-    private void AddARComponentsToLoadedObject()
-    {
-        loadedObject.AddComponent<ConstraintManager>();
-        loadedObject.AddComponent<ObjectManipulator>();
-        loadedObject.AddComponent<NearInteractionGrabbable>();
-    }
-
 }

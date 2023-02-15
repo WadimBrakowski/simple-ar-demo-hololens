@@ -34,6 +34,14 @@ namespace MRTK.Tutorials.GettingStarted
         private bool isPlaced;
         private bool isResetting;
 
+        public Transform LocationToPlace
+        {
+            set
+            {
+                locationToPlace = value;
+            }
+        }
+
         public bool IsPunEnabled
         {
             set => isPunEnabled = value;

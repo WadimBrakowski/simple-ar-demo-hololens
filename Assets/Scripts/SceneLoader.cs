@@ -5,18 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void LoadRoverScene()
     {
         SceneManager.LoadScene("RoverScene");
@@ -25,5 +13,10 @@ public class SceneLoader : MonoBehaviour
     public void LoadSetupScene()
     {
         SceneManager.LoadScene("Setup Scene");
+    }
+
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }

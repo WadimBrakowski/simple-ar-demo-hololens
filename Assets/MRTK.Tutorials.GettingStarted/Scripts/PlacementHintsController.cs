@@ -16,6 +16,14 @@ namespace MRTK.Tutorials.GettingStarted
             set => isPunEnabled = value;
         }
 
+        public GameObject[] PlacementHints
+        {
+            set
+            {
+                placementHints = value;
+            }
+        }
+
         private void Start()
         {
             // Set the active state depending on the editor setting
